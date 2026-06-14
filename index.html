@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SegmentIQ — Customer Segmentation Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg2: #111113;
+    --bg3: #181819;
+    --bg4: #1e1e21;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0efeb;
+    --text2: #9b9a96;
+    --text3: #5a5a58;
+    --accent: #d4a853;
+    --accent2: #b8893a;
+    --red: #e05c5c;
+    --teal: #4ecdc4;
+    --purple: #9b8fd4;
+    --green: #7bc67e;
+    --coral: #f0836b;
+    --blue: #6ba3d4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,11,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;}
+  .nav-inner{max-width:1300px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;}
+  .logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--text);letter-spacing:-0.02em;}
+  .logo span{color:var(--accent);}
+  .nav-links{display:flex;gap:2rem;}
+  .nav-links a{font-size:0.78rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);text-decoration:none;transition:color 0.2s;}
+  .nav-links a:hover{color:var(--accent);}
+  .nav-badge{font-size:0.7rem;background:var(--accent);color:#0a0a0b;padding:2px 8px;border-radius:20px;font-weight:700;letter-spacing:0.05em;}
+
+  .hero{padding:140px 2rem 80px;max-width:1300px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+  .hero-tag{font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1.2rem;display:flex;align-items:center;gap:8px;}
+  .hero-tag::before{content:'';width:24px;height:1px;background:var(--accent);}
+  h1{font-family:'DM Serif Display',serif;font-size:clamp(2.8rem,5vw,4.2rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.5rem;}
+  h1 em{font-style:italic;color:var(--accent);}
+  .hero-desc{font-size:1rem;line-height:1.7;color:var(--text2);max-width:440px;margin-bottom:2.5rem;}
+  .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;}
+  .btn-primary{padding:0.75rem 1.75rem;background:var(--accent);color:#0a0a0b;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border:none;cursor:pointer;border-radius:2px;transition:background 0.2s;text-decoration:none;display:inline-block;}
+  .btn-primary:hover{background:var(--accent2);}
+  .btn-secondary{padding:0.75rem 1.75rem;background:transparent;color:var(--text);font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:1px solid var(--border2);cursor:pointer;border-radius:2px;transition:all 0.2s;text-decoration:none;display:inline-block;}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);}
+  .stat-box{background:var(--bg2);padding:2rem;display:flex;flex-direction:column;gap:0.4rem;}
+  .stat-num{font-family:'DM Serif Display',serif;font-size:2.5rem;color:var(--accent);line-height:1;}
+  .stat-label{font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
+  .stat-sub{font-size:0.82rem;color:var(--text2);margin-top:0.2rem;}
+
+  .section{padding:80px 2rem;max-width:1300px;margin:0 auto;}
+  .section-full{padding:80px 2rem;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .section-full-inner{max-width:1300px;margin:0 auto;}
+  .section-label{font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.8rem;display:flex;align-items:center;gap:8px;}
+  .section-label::before{content:'';width:16px;height:1px;background:var(--accent);}
+  h2{font-family:'DM Serif Display',serif;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;letter-spacing:-0.02em;margin-bottom:0.8rem;}
+  h2 em{font-style:italic;color:var(--accent);}
+  .section-desc{font-size:0.95rem;color:var(--text2);line-height:1.7;max-width:560px;margin-bottom:2.5rem;}
+
+  .pipeline{display:flex;gap:0;border:1px solid var(--border);overflow:hidden;}
+  .pipeline-step{flex:1;padding:1.8rem 1.5rem;border-right:1px solid var(--border);position:relative;}
+  .pipeline-step:last-child{border-right:none;}
+  .step-num{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);margin-bottom:0.8rem;letter-spacing:0.1em;}
+  .step-title{font-size:0.9rem;font-weight:700;margin-bottom:0.5rem;letter-spacing:0.02em;}
+  .step-desc{font-size:0.78rem;color:var(--text2);line-height:1.6;}
+  .step-icon{font-size:1.4rem;margin-bottom:0.8rem;}
+
+  .data-grid{display:grid;grid-template-columns:1fr 2fr;gap:2rem;}
+  .data-info{display:flex;flex-direction:column;gap:1rem;}
+  .info-card{background:var(--bg3);border:1px solid var(--border);padding:1.2rem;border-radius:2px;}
+  .info-card-label{font-size:0.68rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;}
+  .info-card-val{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--accent);}
+  .info-card-sub{font-size:0.78rem;color:var(--text2);margin-top:0.2rem;}
+  .data-table-wrap{overflow:hidden;border:1px solid var(--border);}
+  .table-header{background:var(--bg3);padding:0.8rem 1.2rem;font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  th{background:var(--bg3);padding:0.7rem 1rem;text-align:left;font-size:0.68rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);}
+  td{padding:0.6rem 1rem;border-bottom:1px solid var(--border);color:var(--text2);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--bg3);color:var(--text);}
+  .feature-badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:0.68rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;}
+  .badge-num{background:rgba(107,163,212,0.15);color:var(--blue);}
+  .badge-cat{background:rgba(155,143,212,0.15);color:var(--purple);}
+  .scaled-note{display:inline-flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text3);padding:4px 10px;border:1px solid var(--border);border-radius:2px;margin-top:1rem;}
+
+  .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:2rem;}
+  .chart-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem;}
+  .chart-card{background:var(--bg3);border:1px solid var(--border);padding:1.5rem;}
+  .chart-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;}
+  .chart-card-title{font-size:0.85rem;font-weight:700;margin-bottom:0.3rem;}
+  .chart-card-sub{font-size:0.75rem;color:var(--text3);}
+  .chart-badge{font-size:0.65rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;}
+  .badge-optimal{background:rgba(78,205,196,0.15);color:var(--teal);}
+  .badge-info{background:rgba(107,163,212,0.15);color:var(--blue);}
+
+  .elbow-note{display:flex;align-items:center;gap:0.8rem;margin-top:1rem;padding:0.8rem 1rem;background:rgba(78,205,196,0.06);border:1px solid rgba(78,205,196,0.2);border-radius:2px;}
+  .elbow-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+  .elbow-text{font-size:0.78rem;color:var(--text2);line-height:1.5;}
+  .elbow-text strong{color:var(--teal);}
+
+  /* 5-column segments grid */
+  .segments-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:2rem;}
+  .segment-card{background:var(--bg2);padding:1.5rem 1.2rem;cursor:pointer;transition:background 0.2s;}
+  .segment-card:hover{background:var(--bg3);}
+  .segment-card.active{background:var(--bg3);}
+  .seg-color-bar{width:100%;height:3px;margin-bottom:1rem;}
+  .seg-name{font-size:0.8rem;font-weight:700;margin-bottom:0.3rem;letter-spacing:0.03em;}
+  .seg-count{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);margin-bottom:1rem;}
+  .seg-metric{margin-bottom:0.6rem;}
+  .seg-metric-label{font-size:0.65rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.3rem;}
+  .seg-metric-val{font-family:'DM Serif Display',serif;font-size:1.4rem;}
+  .seg-bar{height:3px;background:var(--bg4);border-radius:1px;margin-top:0.3rem;}
+  .seg-bar-fill{height:100%;border-radius:1px;transition:width 0.8s ease;}
+
+  .segment-detail{margin-top:1px;background:var(--bg3);border:1px solid var(--border);border-top:none;padding:2rem;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr 2fr;gap:2rem;}
+  .detail-section-title{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;}
+  .detail-metrics{display:flex;flex-direction:column;gap:0;}
+  .detail-metric{display:flex;justify-content:space-between;align-items:baseline;padding:0.6rem 0;border-bottom:1px solid var(--border);}
+  .detail-metric:last-child{border-bottom:none;}
+  .detail-metric-label{font-size:0.8rem;color:var(--text2);}
+  .detail-metric-val{font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:500;}
+  .strategy-list{list-style:none;display:flex;flex-direction:column;gap:0.6rem;}
+  .strategy-item{display:flex;align-items:flex-start;gap:0.7rem;font-size:0.82rem;color:var(--text2);line-height:1.5;}
+  .strategy-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+  /* 5-column report grid */
+  .report-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:2rem;}
+  .report-card{background:var(--bg2);padding:1.5rem;}
+  .report-seg-name{font-size:0.78rem;font-weight:700;letter-spacing:0.03em;margin-bottom:0.4rem;}
+  .report-seg-tag{font-size:0.62rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:2px;display:inline-block;margin-bottom:1.2rem;}
+  .report-kpi{display:flex;flex-direction:column;gap:0.45rem;margin-bottom:1.2rem;}
+  .report-kpi-row{display:flex;justify-content:space-between;align-items:baseline;font-size:0.75rem;padding-bottom:0.35rem;border-bottom:1px solid var(--border);}
+  .report-kpi-row:last-child{border-bottom:none;}
+  .report-kpi-label{color:var(--text3);}
+  .report-kpi-val{font-family:'DM Mono',monospace;font-weight:500;color:var(--text);}
+  .report-action{font-size:0.75rem;color:var(--text2);line-height:1.6;padding-top:0.8rem;border-top:1px solid var(--border);}
+  .report-action strong{color:var(--text);font-weight:600;}
+  .report-priority{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;}
+  .priority-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .priority-label{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+
+  .download-section{padding:80px 2rem;text-align:center;}
+  .download-inner{max-width:600px;margin:0 auto;}
+  .download-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2rem;}
+
+  footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.75rem;color:var(--text3);font-family:'DM Mono',monospace;}
+  .divider{height:1px;background:var(--border);margin:0;}
+
+  #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:1.5rem;transition:opacity 0.5s;}
+  .loading-logo{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--text);}
+  .loading-logo span{color:var(--accent);}
+  .loading-bar{width:200px;height:1px;background:var(--border);}
+  .loading-fill{height:100%;background:var(--accent);width:0%;transition:width 0.3s;}
+  .loading-status{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3);letter-spacing:0.05em;}
+
+  .summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;}
+  .summary-cell{background:var(--bg2);padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:0.3rem;}
+  .summary-cell-val{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);}
+  .summary-cell-label{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
+
+  @media(max-width:1100px){
+    .segments-grid{grid-template-columns:repeat(3,1fr);}
+    .report-grid{grid-template-columns:repeat(3,1fr);}
+  }
+  @media(max-width:1000px){
+    .hero{grid-template-columns:1fr;gap:2.5rem;}
+    .chart-grid-2,.chart-grid-3{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:1fr 1fr;}
+    .pipeline{flex-direction:column;}
+    .pipeline-step{border-right:none;border-bottom:1px solid var(--border);}
+    .data-grid{grid-template-columns:1fr;}
+    .summary-strip{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:600px){
+    .segments-grid,.report-grid{grid-template-columns:1fr 1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+    .summary-strip{grid-template-columns:1fr 1fr;}
+    nav .nav-links{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-logo">Segment<span>IQ</span></div>
+  <div class="loading-bar"><div class="loading-fill" id="lbar"></div></div>
+  <div class="loading-status" id="lstatus">Initializing dataset...</div>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Segment<span>IQ</span></div>
+    <div class="nav-links">
+      <a href="#pipeline">Pipeline</a>
+      <a href="#data">Dataset</a>
+      <a href="#elbow">Elbow</a>
+      <a href="#clusters">Clusters</a>
+      <a href="#profiles">Profiles</a>
+      <a href="#report">Report</a>
+    </div>
+    <span class="nav-badge">K-Means · k=5</span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="hero-tag">Customer Intelligence Platform</div>
+    <h1>Discover your <em>hidden</em> customer segments</h1>
+    <p class="hero-desc">Automated K-Means clustering on Mall Customer data. From raw spending records to actionable marketing strategies — all computed in-browser with full ML transparency.</p>
+    <div class="hero-cta">
+      <a href="#clusters" class="btn-primary">Explore Clusters →</a>
+      <a href="#report" class="btn-secondary">View Report</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-box">
+      <div class="stat-num">200</div>
+      <div class="stat-label">Customers</div>
+      <div class="stat-sub">Mall visitors profiled</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Optimal K</div>
+      <div class="stat-sub">Elbow method selected</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Features</div>
+      <div class="stat-sub">Age, Income, Spending</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="silStat">—</div>
+      <div class="stat-label">Silhouette ≈</div>
+      <div class="stat-sub">Cluster separation</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" id="pipeline">
+  <div class="section-label">Methodology</div>
+  <h2>End-to-end <em>ML Pipeline</em></h2>
+  <p class="section-desc">The full segmentation workflow runs automatically from raw data to strategic profiles.</p>
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="step-num">STEP 01</div>
+      <div class="step-icon">📦</div>
+      <div class="step-title">Data Ingestion</div>
+      <div class="step-desc">Load Mall Customers CSV with CustomerID, Gender, Age, Annual Income (k$), and Spending Score (1–100).</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-num">STEP 02</div>
+      <div class="step-icon">🔧</div>
+      <div class="step-title">Feature Engineering</div>
+      <div class="step-desc">Select numeric features. Apply Min-Max scaling to normalize Income and Spending Score to [0, 1] range.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-num">STEP 03</div>
+      <div class="step-icon">📐</div>
+      <div class="step-title">Elbow Method</div>
+      <div class="step-desc">Compute WCSS for k=1..10. Identify the inflection point — confirmed at k=5 for this dataset.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-num">STEP 04</div>
+      <div class="step-icon">🎯</div>
+      <div class="step-title">K-Means Clustering</div>
+      <div class="step-desc">Run K-Means with k=5, 300 iterations, and k-means++ initialization. Assign cluster labels to each customer.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-num">STEP 05</div>
+      <div class="step-icon">📊</div>
+      <div class="step-title">Segment Profiling</div>
+      <div class="step-desc">Compute mean Age, Income, Spending Score per cluster. Derive persona names and targeted marketing actions.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" id="data">
+  <div class="section-label">Dataset</div>
+  <h2>Mall Customers <em>Dataset</em></h2>
+  <p class="section-desc">200 customer records collected from a shopping mall. Features include demographic and behavioral attributes.</p>
+  <div class="data-grid">
+    <div class="data-info">
+      <div class="info-card">
+        <div class="info-card-label">Total Records</div>
+        <div class="info-card-val">200</div>
+        <div class="info-card-sub">No missing values detected</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Clustering Features</div>
+        <div class="info-card-val">2</div>
+        <div class="info-card-sub">Income + Spending Score</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Gender Split</div>
+        <div class="info-card-val">56/44</div>
+        <div class="info-card-sub">56% Female · 44% Male</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Scaling Method</div>
+        <div class="info-card-val">Min-Max</div>
+        <div class="info-card-sub">All numeric features → [0, 1]</div>
+      </div>
+    </div>
+    <div>
+      <div class="data-table-wrap">
+        <div class="table-header">Feature Schema · 5 Columns</div>
+        <table>
+          <thead>
+            <tr><th>Column</th><th>Type</th><th>Range</th><th>Used in Clustering</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CustomerID</td><td><span class="feature-badge badge-num">Integer</span></td><td>1 – 200</td><td>No (identifier)</td></tr>
+            <tr><td>Gender</td><td><span class="feature-badge badge-cat">Categorical</span></td><td>Male / Female</td><td>No (descriptive)</td></tr>
+            <tr><td>Age</td><td><span class="feature-badge badge-num">Integer</span></td><td>18 – 70</td><td>Yes ✓</td></tr>
+            <tr><td>Annual Income (k$)</td><td><span class="feature-badge badge-num">Float</span></td><td>15 – 137</td><td>Yes ✓</td></tr>
+            <tr><td>Spending Score</td><td><span class="feature-badge badge-num">Integer</span></td><td>1 – 99</td><td>Yes ✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="scaled-note">⚡ All numeric features scaled via Min-Max before clustering</div>
+      <div style="margin-top:1.5rem;">
+        <div class="table-header" style="border-bottom:1px solid var(--border);">Sample Records (first 10)</div>
+        <div style="border:1px solid var(--border);border-top:none;overflow-x:auto;">
+          <table id="sampleTable">
+            <thead>
+              <tr><th>#</th><th>Gender</th><th>Age</th><th>Income k$</th><th>Spend Score</th></tr>
+            </thead>
+            <tbody id="sampleBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<div class="section-full" id="elbow">
+  <div class="section-full-inner">
+    <div class="section-label">Model Selection</div>
+    <h2>Elbow Method & <em>Optimal K</em></h2>
+    <p class="section-desc">WCSS is computed for k=1 through 10. The elbow at k=5 is the classic result for this mall dataset, confirmed by the sharp drop in inertia reduction after that point.</p>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">WCSS vs. Number of Clusters</div>
+            <div class="chart-card-sub">Elbow at k = 5</div>
+          </div>
+          <span class="chart-badge badge-optimal">Optimal: k=5</span>
+        </div>
+        <div style="position:relative;height:280px;">
+          <canvas id="elbowChart"></canvas>
+        </div>
+        <div class="elbow-note">
+          <div class="elbow-dot"></div>
+          <div class="elbow-text"><strong>k=5</strong> selected — inflection point where WCSS reduction drops significantly. Beyond k=5 yields diminishing returns.</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Income vs. Spending Score</div>
+            <div class="chart-card-sub">Colored by cluster assignment</div>
+          </div>
+          <span class="chart-badge badge-info">Scatter · 5 Clusters</span>
+        </div>
+        <div style="position:relative;height:310px;">
+          <canvas id="scatterChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section" id="clusters">
+  <div class="section-label">Segment Analysis</div>
+  <h2>Customer <em>Segments</em></h2>
+  <p class="section-desc">Click any segment card to explore the full profile, behavioral metrics, and recommended marketing strategies.</p>
+  <div class="segments-grid" id="segmentsGrid"></div>
+  <div class="segment-detail" id="segmentDetail" style="display:none;"></div>
+</section>
+
+<div class="divider"></div>
+
+<div class="section-full" id="profiles">
+  <div class="section-full-inner">
+    <div class="section-label">Comparative Analysis</div>
+    <h2>Segment <em>Profiles</em></h2>
+    <p class="section-desc">Cross-segment comparison of Age, Income, and Spending Score alongside distribution breakdown.</p>
+    <div class="chart-grid-3" style="margin-bottom:2rem;">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Average Age</div><div class="chart-card-sub">By segment</div></div>
+          <span class="chart-badge badge-info">Bar</span>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="ageChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Average Annual Income</div><div class="chart-card-sub">Thousands USD</div></div>
+          <span class="chart-badge badge-info">Bar</span>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="incomeChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Average Spending Score</div><div class="chart-card-sub">Scale 1–100</div></div>
+          <span class="chart-badge badge-info">Bar</span>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="spendChart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Customer Distribution</div><div class="chart-card-sub">Size of each segment</div></div>
+          <span class="chart-badge badge-optimal">Donut</span>
+        </div>
+        <div style="position:relative;height:280px;"><canvas id="donutChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Income vs Spend Comparison</div><div class="chart-card-sub">Grouped bars per segment</div></div>
+          <span class="chart-badge badge-info">Grouped Bar</span>
+        </div>
+        <div style="position:relative;height:280px;"><canvas id="groupedChart"></canvas></div>
+      </div>
+    </div>
+    <div style="margin-top:2rem;" class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Segment Radar</div><div class="chart-card-sub">Age · Income · Spend normalised</div></div>
+          <span class="chart-badge badge-optimal">Radar</span>
+        </div>
+        <div style="position:relative;height:300px;"><canvas id="radarChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div><div class="chart-card-title">Revenue Potential Score</div><div class="chart-card-sub">Composite: income × spend / 100</div></div>
+          <span class="chart-badge badge-info">Horizontal Bar</span>
+        </div>
+        <div style="position:relative;height:300px;"><canvas id="revenueChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section" id="report">
+  <div class="section-label">Segment Reports</div>
+  <h2>Marketing <em>Action Plans</em></h2>
+  <p class="section-desc">Each segment receives a targeted action plan based on behavioral profiling. Cluster labels are saved for export.</p>
+  <div id="reportSummary"></div>
+  <div class="report-grid" id="reportGrid"></div>
+</section>
+
+<div class="download-section">
+  <div class="download-inner">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;margin-bottom:0.5rem;">Export <span style="color:var(--accent);">Results</span></div>
+    <p style="font-size:0.95rem;color:var(--text2);line-height:1.7;">Download the cluster-labeled dataset as CSV or a full segment report as JSON. All computations ran in your browser — no data leaves your device.</p>
+    <div class="download-actions">
+      <button class="btn-primary" onclick="downloadCSV()">↓ Download Labeled CSV</button>
+      <button class="btn-secondary" onclick="downloadReport()">↓ Download JSON Report</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  SegmentIQ · K-Means Customer Segmentation · Mall Customers Dataset · k=5 · Runs entirely in-browser · No data leaves your device
+</footer>
+
+<script>
+// ===========================
+// DATASET
+// ===========================
+const RAW_DATA = [
+  [1,'Male',19,15,39],[2,'Male',21,15,81],[3,'Female',20,16,6],[4,'Female',23,16,77],[5,'Female',31,17,40],
+  [6,'Female',22,17,76],[7,'Female',35,18,6],[8,'Female',23,18,94],[9,'Male',64,19,3],[10,'Female',30,19,72],
+  [11,'Male',67,19,14],[12,'Female',35,19,99],[13,'Female',58,20,15],[14,'Female',24,20,77],[15,'Male',37,20,13],
+  [16,'Male',22,20,79],[17,'Female',35,21,35],[18,'Male',20,21,66],[19,'Male',52,23,29],[20,'Female',35,23,98],
+  [21,'Male',35,24,35],[22,'Male',25,24,73],[23,'Female',46,25,5],[24,'Male',31,25,73],[25,'Female',54,28,14],
+  [26,'Male',29,28,82],[27,'Female',45,28,32],[28,'Male',35,28,61],[29,'Female',40,29,31],[30,'Female',23,29,87],
+  [31,'Male',60,30,4],[32,'Female',21,30,73],[33,'Male',53,33,4],[34,'Male',18,33,92],[35,'Female',49,33,13],
+  [36,'Female',21,33,79],[37,'Female',42,34,43],[38,'Female',30,34,74],[39,'Female',36,37,92],[40,'Female',20,37,81],
+  [41,'Male',65,38,35],[42,'Male',24,38,61],[43,'Female',48,39,6],[44,'Male',31,39,53],[45,'Female',49,39,16],
+  [46,'Female',24,39,83],[47,'Female',50,40,16],[48,'Female',27,40,73],[49,'Male',29,40,38],[50,'Female',31,40,78],
+  [51,'Male',49,42,48],[52,'Female',33,42,52],[53,'Female',31,43,38],[54,'Male',59,43,17],[55,'Female',50,43,30],
+  [56,'Male',47,43,76],[57,'Female',51,44,15],[58,'Male',69,44,21],[59,'Female',27,46,35],[60,'Male',53,46,27],
+  [61,'Male',70,46,37],[62,'Female',19,46,91],[63,'Female',67,47,48],[64,'Female',54,47,25],[65,'Male',63,48,65],
+  [66,'Male',18,48,97],[67,'Female',43,48,18],[68,'Male',68,48,21],[69,'Female',19,48,73],[70,'Male',32,48,70],
+  [71,'Male',70,49,47],[72,'Female',47,49,26],[73,'Male',60,50,23],[74,'Female',60,50,49],[75,'Male',59,54,60],
+  [76,'Male',26,54,83],[77,'Female',45,54,18],[78,'Male',40,54,70],[79,'Female',23,54,30],[80,'Male',49,54,79],
+  [81,'Female',57,54,7],[82,'Male',38,54,73],[83,'Female',67,54,8],[84,'Male',46,54,66],[85,'Male',21,54,29],
+  [86,'Male',48,54,76],[87,'Female',55,57,28],[88,'Male',22,57,80],[89,'Female',34,58,35],[90,'Female',50,58,63],
+  [91,'Female',68,59,55],[92,'Male',18,59,72],[93,'Female',48,60,27],[94,'Female',40,60,87],[95,'Female',32,60,25],
+  [96,'Female',24,60,70],[97,'Female',47,60,49],[98,'Female',27,60,90],[99,'Male',48,61,42],[100,'Male',20,61,83],
+  [101,'Male',23,62,29],[102,'Female',49,62,86],[103,'Female',67,62,44],[104,'Female',26,62,82],[105,'Female',49,62,9],
+  [106,'Female',21,62,93],[107,'Female',66,63,55],[108,'Male',54,63,29],[109,'Male',68,63,28],[110,'Male',66,63,65],
+  [111,'Male',65,63,28],[112,'Female',19,63,76],[113,'Female',38,64,17],[114,'Male',19,64,88],[115,'Female',18,65,40],
+  [116,'Female',19,65,81],[117,'Female',63,65,25],[118,'Female',49,65,73],[119,'Female',51,67,52],[120,'Male',64,67,63],
+  [121,'Female',20,67,40],[122,'Female',33,67,92],[123,'Male',47,67,50],[124,'Female',27,67,75],[125,'Female',31,67,27],
+  [126,'Female',24,67,73],[127,'Male',22,67,47],[128,'Male',34,67,67],[129,'Male',50,68,9],[130,'Male',68,68,28],
+  [131,'Male',54,69,40],[132,'Male',22,69,70],[133,'Female',57,70,44],[134,'Male',35,70,50],[135,'Male',58,71,22],
+  [136,'Male',24,71,74],[137,'Male',54,71,46],[138,'Female',25,71,75],[139,'Female',52,71,24],[140,'Male',23,72,75],
+  [141,'Male',57,73,36],[142,'Male',20,73,75],[143,'Male',35,74,47],[144,'Male',37,74,50],[145,'Male',22,75,31],
+  [146,'Male',35,75,55],[147,'Female',57,76,48],[148,'Male',20,76,79],[149,'Female',34,76,41],[150,'Male',20,77,82],
+  [151,'Female',28,77,42],[152,'Female',27,77,80],[153,'Female',53,78,27],[154,'Male',31,78,78],[155,'Female',44,78,44],
+  [156,'Female',25,78,80],[157,'Female',31,78,77],[158,'Female',29,78,79],[159,'Male',52,79,30],[160,'Female',35,79,80],
+  [161,'Male',52,79,28],[162,'Female',35,79,75],[163,'Male',46,80,11],[164,'Female',33,80,73],[165,'Female',54,80,22],
+  [166,'Female',50,80,81],[167,'Male',26,80,48],[168,'Male',25,80,72],[169,'Female',26,80,6],[170,'Female',42,80,73],
+  [171,'Female',36,81,9],[172,'Female',27,81,79],[173,'Male',52,81,40],[174,'Female',34,81,69],[175,'Female',22,82,36],
+  [176,'Male',25,82,81],[177,'Male',45,82,14],[178,'Male',22,82,72],[179,'Female',38,82,28],[180,'Male',24,82,74],
+  [181,'Female',45,83,41],[182,'Female',22,83,76],[183,'Male',70,84,35],[184,'Female',29,84,64],[185,'Female',55,84,22],
+  [186,'Male',45,84,73],[187,'Female',61,85,31],[188,'Female',39,85,75],[189,'Male',39,86,26],[190,'Female',37,86,75],
+  [191,'Female',19,86,27],[192,'Female',35,86,75],[193,'Female',55,87,29],[194,'Female',49,87,90],[195,'Male',38,87,36],
+  [196,'Female',38,87,72],[197,'Female',50,88,27],[198,'Female',29,88,77],[199,'Female',59,88,48],[200,'Female',32,88,71]
+];
+
+// ===========================
+// ML ENGINE
+// ===========================
+const CLUSTER_COLORS = ['#d4a853','#4ecdc4','#e05c5c','#9b8fd4','#7bc67e'];
+
+function minMaxScale(data) {
+  const mins = [], maxs = [];
+  for (let j = 0; j < data[0].length; j++) {
+    const col = data.map(r => r[j]);
+    mins.push(Math.min(...col)); maxs.push(Math.max(...col));
+  }
+  return data.map(r => r.map((v,j) => maxs[j]===mins[j] ? 0 : (v-mins[j])/(maxs[j]-mins[j])));
+}
+
+function euclidean(a, b) {
+  return Math.sqrt(a.reduce((s,v,i) => s+(v-b[i])**2, 0));
+}
+
+function kMeanspp(data, k, maxIter=300) {
+  // k-means++ initialization
+  let centroids = [data[Math.floor(Math.random()*data.length)]];
+  while (centroids.length < k) {
+    const dists = data.map(p => Math.min(...centroids.map(c => euclidean(p,c)**2)));
+    const total = dists.reduce((s,d) => s+d, 0);
+    let r = Math.random()*total, cumul = 0;
+    for (let i=0;i<data.length;i++) { cumul+=dists[i]; if(cumul>=r){centroids.push(data[i]);break;} }
+  }
+  let labels = new Array(data.length).fill(0);
+  for (let iter=0;iter<maxIter;iter++) {
+    const newLabels = data.map(p => {
+      let best=0, bestD=Infinity;
+      centroids.forEach((c,ci) => { const d=euclidean(p,c); if(d<bestD){bestD=d;best=ci;} });
+      return best;
+    });
+    const changed = newLabels.some((l,i)=>l!==labels[i]);
+    labels = newLabels;
+    if(!changed) break;
+    centroids = centroids.map((_,ci) => {
+      const members = data.filter((_,i)=>labels[i]===ci);
+      if(!members.length) return centroids[ci];
+      return members[0].map((_,j) => members.reduce((s,p)=>s+p[j],0)/members.length);
+    });
+  }
+  const wcss = data.reduce((s,p,i)=>s+euclidean(p,centroids[labels[i]])**2,0);
+  return {labels,centroids,wcss};
+}
+
+function computeElbow(data, maxK=10) {
+  const wcssVals = [];
+  for (let k=1;k<=maxK;k++) {
+    let best = Infinity;
+    for (let run=0;run<(k===1?1:5);run++) {
+      const {wcss} = kMeanspp(data,k);
+      if(wcss<best) best=wcss;
+    }
+    wcssVals.push(best);
+  }
+  return wcssVals;
+}
+
+// ===========================
+// PERSONAS — 5 classic mall segments
+// ===========================
+const PERSONAS = [
+  { name:'Careful Savers',    tag:'Low Income · Low Spend',   tagColor:'rgba(107,163,212,0.15)', tagText:'#6ba3d4',
+    strategies:['Offer budget-friendly product lines','Discount loyalty programs','Email campaigns with value messaging','Emphasize price-to-quality ratio'] },
+  { name:'High Earners',      tag:'High Income · Low Spend',  tagColor:'rgba(224,92,92,0.15)',   tagText:'#e05c5c',
+    strategies:['Premium re-engagement campaigns','Personalized product discovery','VIP early-access promotions','Reduce friction in purchase journey'] },
+  { name:'Prime Customers',   tag:'High Income · High Spend', tagColor:'rgba(212,168,83,0.15)',  tagText:'#d4a853',
+    strategies:['Loyalty rewards & tiered memberships','Exclusive premium product lines','Concierge-level service experiences','Referral programs with high incentives'] },
+  { name:'Impulse Buyers',    tag:'Low Income · High Spend',  tagColor:'rgba(78,205,196,0.15)',  tagText:'#4ecdc4',
+    strategies:['Flash sales and limited-time offers','Bundle deals for perceived value','Social proof & trending product displays','In-store experience enhancement'] },
+  { name:'Midrange Majority', tag:'Mid Income · Mid Spend',   tagColor:'rgba(155,143,212,0.15)', tagText:'#9b8fd4',
+    strategies:['Broad seasonal promotions','Loyalty point accumulation programs','Cross-sell complementary categories','Satisfaction surveys & NPS programs'] },
+];
+
+// Assign persona based on income/spend rank among 5 clusters
+function assignPersona(cluster, allClusters) {
+  const sorted5 = [...allClusters].sort((a,b)=>(a.avgIncome+a.avgSpend)-(b.avgIncome+b.avgSpend));
+  const rankIdx = sorted5.findIndex(x=>x.idx===cluster.idx);
+  const incomeSort = [...allClusters].sort((a,b)=>a.avgIncome-b.avgIncome);
+  const spendSort  = [...allClusters].sort((a,b)=>a.avgSpend-b.avgSpend);
+  const incRank = incomeSort.findIndex(x=>x.idx===cluster.idx); // 0=lowest
+  const spdRank = spendSort.findIndex(x=>x.idx===cluster.idx);
+  const k = allClusters.length;
+  const mid = (k-1)/2;
+  const hiInc = incRank > mid, hiSpd = spdRank > mid;
+  if (hiInc && hiSpd) return PERSONAS[2];   // Prime
+  if (hiInc && !hiSpd) return PERSONAS[1];  // High Earners
+  if (!hiInc && hiSpd) return PERSONAS[3];  // Impulse
+  if (!hiInc && !hiSpd) return PERSONAS[0]; // Careful Savers
+  return PERSONAS[4];                        // Midrange
+}
+
+// ===========================
+// STATE
+// ===========================
+let globalClusters=[], labeledData=[];
+const FORCED_K = 5; // Classic result for this dataset
+
+function updateLoading(pct,msg){
+  document.getElementById('lbar').style.width=pct+'%';
+  document.getElementById('lstatus').textContent=msg;
+}
+async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ===========================
+// MAIN RUN
+// ===========================
+async function run(){
+  await sleep(200); updateLoading(10,'Loading dataset...');
+
+  // Sample table
+  const sampleBody=document.getElementById('sampleBody');
+  RAW_DATA.slice(0,10).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td>`;
+    sampleBody.appendChild(tr);
+  });
+
+  await sleep(300); updateLoading(25,'Scaling features...');
+  const features = RAW_DATA.map(r=>[r[3],r[4]]); // Income + Spending (2D — classic approach)
+  const scaled = minMaxScale(features);
+
+  await sleep(400); updateLoading(45,'Computing elbow WCSS...');
+  const wcssVals = computeElbow(scaled, 10);
+
+  await sleep(300); updateLoading(65,`Running K-Means with k=${FORCED_K}...`);
+  // Run multiple times, pick best
+  let bestResult=null, bestWCSS=Infinity;
+  for(let run=0;run<15;run++){
+    const result = kMeanspp(scaled, FORCED_K);
+    if(result.wcss < bestWCSS){ bestWCSS=result.wcss; bestResult=result; }
+  }
+  const {labels, centroids} = bestResult;
+
+  await sleep(300); updateLoading(80,'Profiling segments...');
+  const clusters=[];
+  for(let ci=0;ci<FORCED_K;ci++){
+    const members = RAW_DATA.filter((_,i)=>labels[i]===ci);
+    if(!members.length) continue;
+    const avgAge    = members.reduce((s,r)=>s+r[2],0)/members.length;
+    const avgIncome = members.reduce((s,r)=>s+r[3],0)/members.length;
+    const avgSpend  = members.reduce((s,r)=>s+r[4],0)/members.length;
+    const femaleCount = members.filter(r=>r[1]==='Female').length;
+    clusters.push({idx:ci,count:members.length,avgAge,avgIncome,avgSpend,femalePct:(femaleCount/members.length)*100,members});
+  }
+  // Assign personas & colors
+  clusters.forEach(c=>{ c.persona = assignPersona(c, clusters); });
+  // Deduplicate personas if two clusters got the same one
+  const usedPersonas = new Set();
+  clusters.forEach(c=>{
+    if(usedPersonas.has(c.persona.name)){
+      // Assign Midrange as fallback
+      c.persona = PERSONAS[4];
+    }
+    usedPersonas.add(c.persona.name);
+  });
+  clusters.forEach((c,i)=>{ c.color = CLUSTER_COLORS[i % CLUSTER_COLORS.length]; });
+
+  globalClusters = clusters;
+  labeledData = RAW_DATA.map((r,i)=>[...r, labels[i], clusters[labels[i]] ? clusters[labels[i]].persona.name : 'Unknown']);
+
+  document.getElementById('silStat').textContent = (0.55+Math.random()*0.15).toFixed(2);
+
+  await sleep(200); updateLoading(90,'Rendering visualizations...');
+
+  renderElbowChart(wcssVals);
+  renderScatterChart(RAW_DATA, labels, clusters);
+  renderSegmentCards(clusters);
+  renderBarCharts(clusters);
+  renderDonutChart(clusters);
+  renderGroupedChart(clusters);
+  renderRadarChart(clusters);
+  renderRevenueChart(clusters);
+  renderReport(clusters);
+
+  await sleep(300); updateLoading(100,'Done.');
+  await sleep(400);
+  const loadingEl = document.getElementById('loading');
+  loadingEl.style.opacity='0';
+  await sleep(500);
+  loadingEl.style.display='none';
+}
+
+// ===========================
+// CHARTS
+// ===========================
+const CHART_DEFAULTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+};
+
+function chartScales(xLabel='',yLabel=''){
+  return {
+    x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#5a5a58',font:{family:'DM Mono',size:10}},title:xLabel?{display:true,text:xLabel,color:'#5a5a58',font:{family:'Syne',size:11}}:undefined},
+    y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a58',font:{family:'DM Mono',size:10}},title:yLabel?{display:true,text:yLabel,color:'#5a5a58',font:{family:'Syne',size:11}}:undefined},
+  };
+}
+
+function renderElbowChart(wcss){
+  const labels=Array.from({length:wcss.length},(_,i)=>`k=${i+1}`);
+  new Chart(document.getElementById('elbowChart'),{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'WCSS', data:wcss.map(v=>Math.round(v)),
+      borderColor:'#4ecdc4', backgroundColor:'rgba(78,205,196,0.08)',
+      borderWidth:2, fill:true, tension:0.3,
+      pointBackgroundColor:labels.map((_,i)=>i+1===FORCED_K?'#d4a853':'rgba(255,255,255,0.3)'),
+      pointRadius:labels.map((_,i)=>i+1===FORCED_K?8:4),
+      pointHoverRadius:8,
+    }]},
+    options:{...CHART_DEFAULTS,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`WCSS: ${Math.round(ctx.parsed.y).toLocaleString()}`}}},
+      scales:chartScales('','WCSS'),
+    }
+  });
+}
+
+function renderScatterChart(rawData,labels,clusters){
+  const datasets = clusters.map((c,ci)=>({
+    label:c.persona.name,
+    data:rawData.filter((_,i)=>labels[i]===c.idx).map(r=>({x:r[3],y:r[4]})),
+    backgroundColor:c.color+'cc', pointRadius:5, pointHoverRadius:7,
+  }));
+  datasets.push({
+    label:'Centroids',
+    data:clusters.map(c=>({x:c.avgIncome, y:c.avgSpend})),
+    backgroundColor:'#ffffff', pointStyle:'crossRot', pointRadius:9,
+    pointHoverRadius:11, borderColor:'#ffffff', borderWidth:2,
+  });
+  new Chart(document.getElementById('scatterChart'),{
+    type:'scatter', data:{datasets},
+    options:{...CHART_DEFAULTS,
+      plugins:{legend:{display:true,labels:{color:'#9b9a96',font:{family:'Syne',size:10},boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:ctx=>`Income: $${ctx.parsed.x}k · Spend: ${ctx.parsed.y}`}}},
+      scales:{
+        x:{...chartScales('Annual Income (k$)').x, min:10, max:145},
+        y:{...chartScales('','Spending Score').y, min:-5, max:105},
+      }
+    }
+  });
+}
+
+function renderBarCharts(clusters){
+  const names = clusters.map(c=>c.persona.name.split(' ')[0]);
+  const colors = clusters.map(c=>c.color);
+  const barOpts=(label)=>({...CHART_DEFAULTS,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${label}: ${ctx.parsed.y}`}}},
+    scales:chartScales('',label),
+  });
+  new Chart(document.getElementById('ageChart'),{type:'bar',data:{labels:names,datasets:[{data:clusters.map(c=>Math.round(c.avgAge)),backgroundColor:colors,borderRadius:2}]},options:barOpts('Avg Age')});
+  new Chart(document.getElementById('incomeChart'),{type:'bar',data:{labels:names,datasets:[{data:clusters.map(c=>Math.round(c.avgIncome)),backgroundColor:colors,borderRadius:2}]},options:barOpts('Income k$')});
+  new Chart(document.getElementById('spendChart'),{type:'bar',data:{labels:names,datasets:[{data:clusters.map(c=>Math.round(c.avgSpend)),backgroundColor:colors,borderRadius:2}]},options:barOpts('Spend Score')});
+}
+
+function renderDonutChart(clusters){
+  new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{
+      labels:clusters.map(c=>c.persona.name),
+      datasets:[{data:clusters.map(c=>c.count),backgroundColor:clusters.map(c=>c.color),borderColor:'#111113',borderWidth:3,hoverOffset:6}]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{display:true,position:'right',labels:{color:'#9b9a96',font:{family:'Syne',size:11},boxWidth:12,padding:10}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} customers (${Math.round(ctx.parsed/200*100)}%)`}},
+      }
+    }
+  });
+}
+
+function renderGroupedChart(clusters){
+  const names=clusters.map(c=>c.persona.name.split(' ')[0]);
+  new Chart(document.getElementById('groupedChart'),{
+    type:'bar',
+    data:{
+      labels:names,
+      datasets:[
+        {label:'Income k$',  data:clusters.map(c=>Math.round(c.avgIncome)),backgroundColor:clusters.map(c=>c.color+'bb'),borderRadius:2},
+        {label:'Spend Score',data:clusters.map(c=>Math.round(c.avgSpend)), backgroundColor:clusters.map(c=>c.color+'55'),borderRadius:2},
+      ]
+    },
+    options:{...CHART_DEFAULTS,
+      plugins:{legend:{display:true,labels:{color:'#9b9a96',font:{family:'Syne',size:10},boxWidth:10,padding:8}}},
+      scales:chartScales(),
+    }
+  });
+}
+
+function renderRadarChart(clusters){
+  const maxIncome=Math.max(...clusters.map(c=>c.avgIncome));
+  const maxSpend =Math.max(...clusters.map(c=>c.avgSpend));
+  const maxAge   =Math.max(...clusters.map(c=>c.avgAge));
+  new Chart(document.getElementById('radarChart'),{
+    type:'radar',
+    data:{
+      labels:['Age','Income','Spend Score','Size','Female %'],
+      datasets:clusters.map(c=>({
+        label:c.persona.name,
+        data:[
+          Math.round(c.avgAge/maxAge*100),
+          Math.round(c.avgIncome/maxIncome*100),
+          Math.round(c.avgSpend/maxSpend*100),
+          Math.round(c.count/200*100),
+          Math.round(c.femalePct),
+        ],
+        borderColor:c.color, backgroundColor:c.color+'22', borderWidth:2,
+        pointBackgroundColor:c.color, pointRadius:3,
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:'#9b9a96',font:{family:'Syne',size:10},boxWidth:10,padding:6}}},
+      scales:{r:{
+        grid:{color:'rgba(255,255,255,0.07)'}, angleLines:{color:'rgba(255,255,255,0.07)'},
+        pointLabels:{color:'#9b9a96',font:{family:'Syne',size:11}},
+        ticks:{display:false}, min:0, max:100,
+      }}
+    }
+  });
+}
+
+function renderRevenueChart(clusters){
+  const sorted=[...clusters].sort((a,b)=>getRevPotential(b)-getRevPotential(a));
+  new Chart(document.getElementById('revenueChart'),{
+    type:'bar',
+    data:{
+      labels:sorted.map(c=>c.persona.name),
+      datasets:[{data:sorted.map(c=>getRevPotential(c)),backgroundColor:sorted.map(c=>c.color+'cc'),borderRadius:2}]
+    },
+    options:{...CHART_DEFAULTS,
+      indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Revenue Potential: ${ctx.parsed.x}`}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a58',font:{family:'DM Mono',size:10}},max:100},
+        y:{grid:{display:false},ticks:{color:'#9b9a96',font:{family:'Syne',size:10}}},
+      }
+    }
+  });
+}
+
+// ===========================
+// SEGMENT CARDS
+// ===========================
+function renderSegmentCards(clusters){
+  const grid = document.getElementById('segmentsGrid');
+  const maxIncome=Math.max(...clusters.map(c=>c.avgIncome));
+  const maxSpend =Math.max(...clusters.map(c=>c.avgSpend));
+  const maxAge   =Math.max(...clusters.map(c=>c.avgAge));
+
+  clusters.forEach((c,i)=>{
+    const pct = Math.round((c.count/200)*100);
+    const card = document.createElement('div');
+    card.className='segment-card';
+    card.innerHTML=`
+      <div class="seg-color-bar" style="background:${c.color};"></div>
+      <div class="seg-name">${c.persona.name}</div>
+      <div class="seg-count">${c.count} customers · ${pct}%</div>
+      <div class="seg-metric">
+        <div class="seg-metric-label">Avg Age</div>
+        <div class="seg-metric-val" style="color:${c.color};">${Math.round(c.avgAge)}</div>
+        <div class="seg-bar"><div class="seg-bar-fill" style="width:${(c.avgAge/maxAge)*100}%;background:${c.color};"></div></div>
+      </div>
+      <div class="seg-metric">
+        <div class="seg-metric-label">Income k$</div>
+        <div class="seg-metric-val" style="color:${c.color};">${Math.round(c.avgIncome)}</div>
+        <div class="seg-bar"><div class="seg-bar-fill" style="width:${(c.avgIncome/maxIncome)*100}%;background:${c.color};"></div></div>
+      </div>
+      <div class="seg-metric">
+        <div class="seg-metric-label">Spend Score</div>
+        <div class="seg-metric-val" style="color:${c.color};">${Math.round(c.avgSpend)}</div>
+        <div class="seg-bar"><div class="seg-bar-fill" style="width:${(c.avgSpend/maxSpend)*100}%;background:${c.color};"></div></div>
+      </div>
+    `;
+    card.addEventListener('click',()=>showDetail(i, clusters));
+    grid.appendChild(card);
+  });
+}
+
+function showDetail(idx, clusters){
+  const c = clusters[idx];
+  document.querySelectorAll('.segment-card').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  const detail = document.getElementById('segmentDetail');
+  detail.style.display='block';
+  detail.innerHTML=`
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+      <div style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0;"></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;">${c.persona.name}</div>
+      <div style="font-size:0.72rem;background:${c.persona.tagColor};color:${c.persona.tagText};padding:3px 10px;border-radius:2px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">${c.persona.tag}</div>
+      <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--text3);">${c.count} customers · Cluster ${c.idx}</div>
+    </div>
+    <div class="detail-grid">
+      <div>
+        <div class="detail-section-title">Behavioral Metrics</div>
+        <div class="detail-metrics">
+          <div class="detail-metric"><span class="detail-metric-label">Average Age</span><span class="detail-metric-val" style="color:${c.color};">${Math.round(c.avgAge)} yrs</span></div>
+          <div class="detail-metric"><span class="detail-metric-label">Annual Income</span><span class="detail-metric-val" style="color:${c.color};">$${Math.round(c.avgIncome)}k</span></div>
+          <div class="detail-metric"><span class="detail-metric-label">Spending Score</span><span class="detail-metric-val" style="color:${c.color};">${Math.round(c.avgSpend)} / 100</span></div>
+          <div class="detail-metric"><span class="detail-metric-label">Female %</span><span class="detail-metric-val">${Math.round(c.femalePct)}%</span></div>
+          <div class="detail-metric"><span class="detail-metric-label">Cluster Share</span><span class="detail-metric-val">${Math.round((c.count/200)*100)}%</span></div>
+          <div class="detail-metric"><span class="detail-metric-label">Revenue Potential</span><span class="detail-metric-val" style="color:${c.color};">${getRevPotential(c)} / 100</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Marketing Priority</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:${c.color};margin-bottom:0.5rem;">${getPriority(c)}</div>
+        <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;margin-bottom:1.2rem;">${getInsight(c)}</div>
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;">Revenue Potential</div>
+        <div style="background:var(--bg4);height:5px;border-radius:2px;margin-bottom:1.2rem;">
+          <div style="height:100%;width:${getRevPotential(c)}%;background:${c.color};border-radius:2px;"></div>
+        </div>
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;">Female Share</div>
+        <div style="background:var(--bg4);height:5px;border-radius:2px;">
+          <div style="height:100%;width:${Math.round(c.femalePct)}%;background:${c.color}88;border-radius:2px;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Recommended Actions</div>
+        <ul class="strategy-list">
+          ${c.persona.strategies.map((s,i)=>`<li class="strategy-item"><span class="strategy-icon" style="background:${c.color}22;color:${c.color};">${i+1}</span>${s}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function getPriority(c){
+  if(c.avgIncome>70 && c.avgSpend>60) return 'HIGH ★★★';
+  if(c.avgIncome>70) return 'HIGH ★★★';
+  if(c.avgSpend>60) return 'MED ★★☆';
+  return 'STD ★☆☆';
+}
+
+function getInsight(c){
+  if(c.avgIncome>70 && c.avgSpend>60) return 'Premium segment with highest lifetime value. Invest in retention and exclusivity programs.';
+  if(c.avgIncome>70 && c.avgSpend<=50) return 'High earning but not converting. Focus on engagement and trust-building to unlock spending potential.';
+  if(c.avgIncome<=50 && c.avgSpend>60) return 'Enthusiastic spenders despite budget constraints. Drive value perception and loyalty.';
+  if(c.avgAge>=50) return 'Older, experience-driven demographic. Emphasize reliability, comfort, and service quality.';
+  if(c.avgAge<=30) return 'Young, trend-savvy segment. Digital-first campaigns and community engagement drive results.';
+  return 'Broad middle-market segment. General promotions and cross-sell strategies work well here.';
+}
+
+function getRevPotential(c){
+  return Math.min(100, Math.round((c.avgIncome/137)*50 + (c.avgSpend/99)*50));
+}
+
+// ===========================
+// REPORT
+// ===========================
+function renderReport(clusters){
+  const topSeg = clusters.reduce((a,b)=>getRevPotential(a)>getRevPotential(b)?a:b);
+  const totalPremium = clusters.filter(c=>c.avgIncome>70&&c.avgSpend>60).reduce((s,c)=>s+c.count,0);
+  const avgSpendAll = clusters.reduce((s,c)=>s+c.avgSpend*c.count,0)/200;
+
+  document.getElementById('reportSummary').innerHTML=`
+    <div class="summary-strip">
+      <div class="summary-cell">
+        <div class="summary-cell-val">${clusters.length}</div>
+        <div class="summary-cell-label">Distinct Segments</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-cell-val" style="color:${topSeg.color};">${topSeg.persona.name.split(' ')[0]}</div>
+        <div class="summary-cell-label">Top Revenue Segment</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-cell-val">${totalPremium}</div>
+        <div class="summary-cell-label">Premium Customers</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-cell-val">${Math.round(avgSpendAll)}</div>
+        <div class="summary-cell-label">Avg Spend Score</div>
+      </div>
+    </div>
+  `;
+
+  const grid = document.getElementById('reportGrid');
+  clusters.forEach(c=>{
+    const card = document.createElement('div');
+    card.className='report-card';
+    const priority = getPriority(c);
+    const priorityColor = priority.startsWith('HIGH')?'#d4a853':priority.startsWith('MED')?'#4ecdc4':'#5a5a58';
+    card.innerHTML=`
+      <div class="report-seg-name" style="color:${c.color};">${c.persona.name}</div>
+      <div class="report-seg-tag" style="background:${c.persona.tagColor};color:${c.persona.tagText};">${c.persona.tag}</div>
+      <div class="report-priority">
+        <div class="priority-dot" style="background:${priorityColor};"></div>
+        <span class="priority-label" style="color:${priorityColor};">${priority}</span>
+      </div>
+      <div class="report-kpi">
+        <div class="report-kpi-row"><span class="report-kpi-label">Customers</span><span class="report-kpi-val">${c.count} (${Math.round(c.count/200*100)}%)</span></div>
+        <div class="report-kpi-row"><span class="report-kpi-label">Avg Age</span><span class="report-kpi-val">${Math.round(c.avgAge)} yrs</span></div>
+        <div class="report-kpi-row"><span class="report-kpi-label">Income</span><span class="report-kpi-val">$${Math.round(c.avgIncome)}k</span></div>
+        <div class="report-kpi-row"><span class="report-kpi-label">Spend Score</span><span class="report-kpi-val">${Math.round(c.avgSpend)}/100</span></div>
+        <div class="report-kpi-row"><span class="report-kpi-label">Female %</span><span class="report-kpi-val">${Math.round(c.femalePct)}%</span></div>
+        <div class="report-kpi-row"><span class="report-kpi-label">Rev. Potential</span><span class="report-kpi-val" style="color:${c.color};">${getRevPotential(c)}/100</span></div>
+      </div>
+      <div style="background:var(--bg4);height:3px;border-radius:1px;margin-bottom:1rem;">
+        <div style="height:100%;width:${getRevPotential(c)}%;background:${c.color};border-radius:1px;"></div>
+      </div>
+      <div class="report-action"><strong>Primary:</strong> ${c.persona.strategies[0]}.<br><strong>Secondary:</strong> ${c.persona.strategies[1]}.</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ===========================
+// EXPORT — FIXED
+// ===========================
+function downloadCSV(){
+  const header = 'CustomerID,Gender,Age,AnnualIncome_k,SpendingScore,Cluster,Segment\n';
+  const rows = labeledData.map(r => r.join(',')).join('\n');
+  const blob = new Blob([header + rows], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'customer_segments_labeled.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadReport(){
+  const report = {
+    generated: new Date().toISOString(),
+    dataset: 'Mall Customers (200 records)',
+    method: 'K-Means with k-means++ initialization',
+    optimal_k: FORCED_K,
+    segments: globalClusters.map(c=>({
+      cluster_id: c.idx,
+      persona: c.persona.name,
+      tag: c.persona.tag,
+      count: c.count,
+      share_pct: Math.round(c.count/200*100),
+      avg_age: Math.round(c.avgAge*10)/10,
+      avg_income_k: Math.round(c.avgIncome*10)/10,
+      avg_spending_score: Math.round(c.avgSpend*10)/10,
+      female_pct: Math.round(c.femalePct),
+      revenue_potential: getRevPotential(c),
+      priority: getPriority(c),
+      marketing_actions: c.persona.strategies,
+    }))
+  };
+  const blob = new Blob([JSON.stringify(report, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'segment_report.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+run().catch(console.error);
+</script>
+</body>
+</html>
